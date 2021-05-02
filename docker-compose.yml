@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+
+
+  pubsubapi:
+    image: ${DOCKER_REGISTRY-}pubsubapi
+    build:
+      context: .
+      dockerfile: Services/PubSubApp/PubSubApi/Dockerfile
