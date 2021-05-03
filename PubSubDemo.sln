@@ -17,7 +17,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureMessageBus", "MessageB
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{CEAD2AD4-211D-4808-88C7-935D119E368E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooglePubSub", "MessageBus\GooglePubSub\GooglePubSub.csproj", "{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GooglePubSub", "MessageBus\GooglePubSub\GooglePubSub.csproj", "{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E96D3702-EC68-4539-957B-F49ED3F5E806}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
