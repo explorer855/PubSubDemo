@@ -109,6 +109,8 @@ namespace AzureMessageBus
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
                     }).GetAwaiter().GetResult();
+
+                    _subsManager.AddSubscription<T, TH>();
                 }
                 catch (ServiceBusException)
                 {
@@ -119,10 +121,7 @@ namespace AzureMessageBus
                     RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber);
                 }
             }
-
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
-
-            _subsManager.AddSubscription<T, TH>();
         }
 
         public void UnsubscribeAzure<T, TH>()

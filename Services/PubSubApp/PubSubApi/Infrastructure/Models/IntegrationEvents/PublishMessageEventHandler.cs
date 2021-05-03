@@ -8,9 +8,9 @@ namespace PubSubApi.Infrastructure.Models.IntegrationEvents
     public class PublishMessageEventHandler 
         : IIntegrationEventHandler<PublishMessageEvent>
     {
-        private readonly ILogger<PublishMessageEvent> _logger;
+        private readonly ILogger<PublishMessageEventHandler> _logger;
 
-        public PublishMessageEventHandler(ILogger<PublishMessageEvent> logger)
+        public PublishMessageEventHandler(ILogger<PublishMessageEventHandler> logger)
         {
             _logger = logger;
         }
