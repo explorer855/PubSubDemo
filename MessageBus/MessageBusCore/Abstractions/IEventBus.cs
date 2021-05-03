@@ -5,24 +5,44 @@ namespace MessageBusCore.Abstractions
 {
     public interface IEventBus
     {
-        void Publish(IntegrationEvent @event, string authHeader = "");
 
-        void Subscribe<T, TH>()
+        #region Azure
+
+        void PublishAzure(IntegrationEvent @event, string authHeader = "");
+
+        void SubscribeAzure<T, TH>()
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>;
 
-        void SubscriberCreate<T, TH>(string subscriber)
+        void SubscriberCreateAzure<T, TH>(string subscriber)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>;
 
-        void SubscribeDynamic<TH>(string eventName)
+        void SubscribeDynamicAzure<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler;
 
-        void UnsubscribeDynamic<TH>(string eventName)
+        void UnsubscribeDynamicAzure<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler;
 
-        void Unsubscribe<T, TH>()
+        void UnsubscribeAzure<T, TH>()
             where TH : IIntegrationEventHandler<T>
             where T : IntegrationEvent;
+
+        #endregion
+
+        #region GCP
+
+        void PublishGCP(IntegrationEvent @event, string authHeader = "");
+
+        void SubscribeGCP<T, TH>()
+            where T : IntegrationEvent
+            where TH : IIntegrationEventHandler<T>;
+
+        void SubscriberCreateGCP<T, TH>(string subscriber)
+            where T : IntegrationEvent
+            where TH : IIntegrationEventHandler<T>;
+
+        #endregion
+
     }
 }

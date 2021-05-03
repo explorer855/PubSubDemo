@@ -34,13 +34,9 @@ namespace AzureMessageBus
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
             _autofac = autofac;
             _subscriber = string.Empty;
-
-            //RemoveDefaultRule();
-            //RegisterSubscriptionClientMessageHandler();
-            //RegisterSessionEnabledSubscriptionClientMessageHandler();
         }
 
-        public void Publish(IntegrationEvent @event, string authHeader = "")
+        public void PublishAzure(IntegrationEvent @event, string authHeader = "")
         {
             var eventName = @event.GetType().Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
             var jsonMessage = JsonConvert.SerializeObject(@event);
@@ -57,7 +53,7 @@ namespace AzureMessageBus
                 .GetAwaiter().GetResult();
         }
 
-        public void SubscribeDynamic<TH>(string eventName)
+        public void SubscribeDynamicAzure<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler
         {
             _logger.LogInformation("Subscribing to dynamic event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
@@ -65,7 +61,7 @@ namespace AzureMessageBus
             _subsManager.AddDynamicSubscription<TH>(eventName);
         }
 
-        public void Subscribe<T, TH>()
+        public void SubscribeAzure<T, TH>()
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
@@ -97,7 +93,7 @@ namespace AzureMessageBus
             _subsManager.AddSubscription<T, TH>();
         }
 
-        public void SubscriberCreate<T, TH>(string subscriber)
+        public void SubscriberCreateAzure<T, TH>(string subscriber)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
@@ -113,6 +109,8 @@ namespace AzureMessageBus
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
                     }).GetAwaiter().GetResult();
+
+                    _subsManager.AddSubscription<T, TH>();
                 }
                 catch (ServiceBusException)
                 {
@@ -123,13 +121,10 @@ namespace AzureMessageBus
                     RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber);
                 }
             }
-
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
-
-            _subsManager.AddSubscription<T, TH>();
         }
 
-        public void Unsubscribe<T, TH>()
+        public void UnsubscribeAzure<T, TH>()
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
@@ -153,17 +148,12 @@ namespace AzureMessageBus
             _subsManager.RemoveSubscription<T, TH>();
         }
 
-        public void UnsubscribeDynamic<TH>(string eventName)
+        public void UnsubscribeDynamicAzure<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler
         {
             _logger.LogInformation("Unsubscribing from dynamic event {EventName}", eventName);
 
             _subsManager.RemoveDynamicSubscription<TH>(eventName);
-        }
-
-        public void Dispose()
-        {
-            _subsManager.Clear();
         }
 
         private void RegisterSubscriptionClientMessageHandler()
@@ -198,7 +188,7 @@ namespace AzureMessageBus
             _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber)?.RegisterSessionHandler(ProcessSessionMessagesAsync, sessionHandlerOptions);
         }
 
-        async Task ProcessSessionMessagesAsync(IMessageSession session, Message message, CancellationToken token)
+        private async Task ProcessSessionMessagesAsync(IMessageSession session, Message message, CancellationToken token)
         {
             Console.WriteLine($"Received Session: {session.SessionId} message: SequenceNumber: {message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
             var messageData = Encoding.UTF8.GetString(message.Body);
@@ -269,5 +259,49 @@ namespace AzureMessageBus
                 _logger.LogWarning("The messaging entity {DefaultRuleName} Could not be found.", RuleDescription.DefaultRuleName);
             }
         }
+
+        public void Dispose()
+        {
+            _subsManager.Clear();
+        }
+
+        #region Not implemented Region
+
+        /// <summary>
+        /// Not to be called W.r.t Azure, otherwise will throw exceptions
+        /// </summary>
+        /// <param name="event"></param>
+        /// <param name="authHeader"></param>
+        public void PublishGCP(IntegrationEvent @event, string authHeader = "")
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Not to be called W.r.t Azure, otherwise will throw exceptions
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TH"></typeparam>
+        public void SubscribeGCP<T, TH>()
+            where T : IntegrationEvent
+            where TH : IIntegrationEventHandler<T>
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Not to be called W.r.t Azure, otherwise will throw exceptions
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TH"></typeparam>
+        /// <param name="subscriber"></param>
+        public void SubscriberCreateGCP<T, TH>(string subscriber)
+            where T : IntegrationEvent
+            where TH : IIntegrationEventHandler<T>
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

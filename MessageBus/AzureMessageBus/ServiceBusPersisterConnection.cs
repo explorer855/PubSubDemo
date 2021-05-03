@@ -21,7 +21,6 @@ namespace AzureMessageBus
             _serviceBusConnectionStringBuilder = serviceBusConnectionStringBuilder ??
                throw new ArgumentNullException(nameof(serviceBusConnectionStringBuilder));
             _subscriptionClientName = subscriptionClientName;
-            //_serviceBusConnectionStringBuilder.EntityPath = "topic1";
 
             //if (!string.IsNullOrEmpty(subscriptionClientName))
             //    _subscriptionClient = new SubscriptionClient(_serviceBusConnectionStringBuilder, subscriptionClientName);
@@ -33,11 +32,18 @@ namespace AzureMessageBus
         {
             get
             {
-                if (_topicClient?.IsClosedOrClosing ?? false || _topicClient == null)
+                try
                 {
-                    _topicClient = new TopicClient(_serviceBusConnectionStringBuilder, RetryPolicy.Default);
+                    if (_topicClient?.IsClosedOrClosing ?? false || _topicClient == null)
+                    {
+                        _topicClient = new TopicClient(_serviceBusConnectionStringBuilder, RetryPolicy.Default);
+                    }
+                    return _topicClient;
                 }
-                return _topicClient;
+                catch
+                {
+                    throw;
+                }
             }
         }
 
