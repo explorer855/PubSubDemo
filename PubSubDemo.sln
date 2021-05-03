@@ -9,13 +9,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{90
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MessageBus", "MessageBus", "{133B5ADD-8229-49AD-AB6B-ED508159E8C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSubApi", "Services\PubSubApp\PubSubApi\PubSubApi.csproj", "{EC490403-BF05-4CD7-994E-5499E5437E54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PubSubApi", "Services\PubSubApp\PubSubApi\PubSubApi.csproj", "{EC490403-BF05-4CD7-994E-5499E5437E54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBusCore", "MessageBus\MessageBusCore\MessageBusCore.csproj", "{D6DE1141-0F27-44D0-8A25-834AD58937E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageBusCore", "MessageBus\MessageBusCore\MessageBusCore.csproj", "{D6DE1141-0F27-44D0-8A25-834AD58937E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureMessageBus", "MessageBus\AzureMessageBus\AzureMessageBus.csproj", "{06B14428-6F8B-409B-AA3F-39DADB835E8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureMessageBus", "MessageBus\AzureMessageBus\AzureMessageBus.csproj", "{06B14428-6F8B-409B-AA3F-39DADB835E8D}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{CEAD2AD4-211D-4808-88C7-935D119E368E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GooglePubSub", "MessageBus\GooglePubSub\GooglePubSub.csproj", "{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{CEAD2AD4-211D-4808-88C7-935D119E368E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEAD2AD4-211D-4808-88C7-935D119E368E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEAD2AD4-211D-4808-88C7-935D119E368E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +55,7 @@ Global
 		{EC490403-BF05-4CD7-994E-5499E5437E54} = {901465CB-F044-410F-9460-22D2E69B0599}
 		{D6DE1141-0F27-44D0-8A25-834AD58937E9} = {133B5ADD-8229-49AD-AB6B-ED508159E8C3}
 		{06B14428-6F8B-409B-AA3F-39DADB835E8D} = {133B5ADD-8229-49AD-AB6B-ED508159E8C3}
+		{8AE11C75-8C8D-48AE-8BF1-AA2AC7BC6C0B} = {133B5ADD-8229-49AD-AB6B-ED508159E8C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9E35B66A-8CCF-4076-822F-D8AD3A904A17}
