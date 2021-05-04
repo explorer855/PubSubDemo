@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace PubSubApi.Infrastructure.Models.IntegrationEvents
+namespace PubSubApi.Infrastructure.IntegrationEvents
 {
     public class PublishMessageEventHandler 
         : IIntegrationEventHandler<PublishMessageEvent>

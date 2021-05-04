@@ -16,8 +16,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using PubSubApi.Infrastructure.IntegrationEvents;
 using PubSubApi.Infrastructure.MessageBusSettings;
-using PubSubApi.Infrastructure.Models.IntegrationEvents;
 
 namespace PubSubApi
 {

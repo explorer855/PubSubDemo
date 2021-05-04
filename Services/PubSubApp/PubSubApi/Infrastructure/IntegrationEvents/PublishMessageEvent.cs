@@ -1,7 +1,7 @@
 ﻿using MessageBusCore.Events;
 using System;
 
-namespace PubSubApi.Infrastructure.Models.IntegrationEvents
+namespace PubSubApi.Infrastructure.IntegrationEvents
 {
     public class PublishMessageEvent
         : IntegrationEvent
