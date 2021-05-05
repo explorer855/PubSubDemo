@@ -1,11 +1,9 @@
 ﻿using MessageBusCore.Events;
-using System.Threading.Tasks;
 
 namespace MessageBusCore.Abstractions
 {
     public interface IEventBus
     {
-
         #region Azure
 
         void PublishAzure(IntegrationEvent @event, string authHeader = "");
@@ -29,20 +27,5 @@ namespace MessageBusCore.Abstractions
             where T : IntegrationEvent;
 
         #endregion
-
-        #region GCP
-
-        void PublishGCP(IntegrationEvent @event, string authHeader = "");
-
-        void SubscribeGCP<T, TH>()
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>;
-
-        void SubscriberCreateGCP<T, TH>(string subscriber)
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>;
-
-        #endregion
-
     }
 }

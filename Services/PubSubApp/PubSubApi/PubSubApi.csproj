@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\MessageBus\AzureMessageBus\AzureMessageBus.csproj" />
+		<ProjectReference Include="..\..\..\MessageBus\GooglePubSub\GooglePubSub.csproj" />
 	    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
 </ItemGroup>
 

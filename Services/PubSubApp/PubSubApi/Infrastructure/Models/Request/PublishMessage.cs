@@ -9,7 +9,13 @@ namespace PubSubApi.Infrastructure.Models.Request
         public bool? IsPublish { get; set; }
 
         [Required]
-        public dynamic Message { get; set; }
+        public dynamic MessageContent { get; set; }
         public DateTime? PublishedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class PublishMessageGcp :
+        PublishMessage
+    {
+        public string Topic { get; set; }
     }
 }

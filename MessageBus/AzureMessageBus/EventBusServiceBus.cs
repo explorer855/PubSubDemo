@@ -112,9 +112,10 @@ namespace AzureMessageBus
 
                     _subsManager.AddSubscription<T, TH>();
                 }
-                catch (ServiceBusException)
+                catch (ServiceBusException ex)
                 {
                     _logger.LogWarning("The messaging entity {eventName} already exists.", eventName);
+                    throw;
                 }
                 finally
                 {
@@ -264,44 +265,5 @@ namespace AzureMessageBus
         {
             _subsManager.Clear();
         }
-
-        #region Not implemented Region
-
-        /// <summary>
-        /// Not to be called W.r.t Azure, otherwise will throw exceptions
-        /// </summary>
-        /// <param name="event"></param>
-        /// <param name="authHeader"></param>
-        public void PublishGCP(IntegrationEvent @event, string authHeader = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Not to be called W.r.t Azure, otherwise will throw exceptions
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TH"></typeparam>
-        public void SubscribeGCP<T, TH>()
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Not to be called W.r.t Azure, otherwise will throw exceptions
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TH"></typeparam>
-        /// <param name="subscriber"></param>
-        public void SubscriberCreateGCP<T, TH>(string subscriber)
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }
