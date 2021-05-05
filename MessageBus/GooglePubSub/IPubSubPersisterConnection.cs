@@ -1,10 +1,12 @@
-﻿//using Microsoft.Azure.ServiceBus;
+﻿using Google.Cloud.PubSub.V1;
+using System.Threading.Tasks;
 
 namespace GooglePubSub
 {
     public interface IPubSubPersisterConnection
     {
-        //ITopicClient TopicClient { get; }
+        Task<PublisherClient> PublisherClientAsync(string topicId);
+        Task<SubscriberClient> SubscriberClientAsync(string subscriptionId);
         //ISubscriptionClient SubscriptionClient { get; }
 
         //ISubscriptionClient SubscriptionClientCreate(string subscriber);

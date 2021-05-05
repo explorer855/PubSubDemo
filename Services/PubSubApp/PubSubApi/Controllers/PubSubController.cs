@@ -12,9 +12,11 @@ namespace PubSubApi.Controllers
     public class PubSubController : ControllerBase
     {
         private readonly IEventBus _eventBus;
-        public PubSubController(IEventBus eventBus)
+        private readonly IGcpPubSub _pubSub;
+        public PubSubController(IEventBus eventBus, IGcpPubSub gcpPubSub)
         {
             _eventBus = eventBus;
+            _pubSub = gcpPubSub;
         }
 
         [HttpGet("/Default")]
@@ -29,7 +31,7 @@ namespace PubSubApi.Controllers
             if (ModelState.IsValid)
             {
                 if (message.IsPublish ?? false)
-                    await Task.Run(() => _eventBus.PublishAzure(new PublishMessageEvent(message.Message, message.PublishedAt)));
+                    await Task.Run(() => _eventBus.PublishAzure(new PublishMessageEvent(message.MessageContent, message.PublishedAt)));
 
                 return Ok();
             }
@@ -44,6 +46,29 @@ namespace PubSubApi.Controllers
         {
             await Task.Run(() => _eventBus.SubscriberCreateAzure<PublishMessageEvent, PublishMessageEventHandler>(subscriberName));
             return Ok("Model-State Invalid");
+        }
+
+        [HttpPost("/Publish/Message/Gcp")]
+        public async Task<IActionResult> PublishGcp([FromBody] PublishMessageGcp message)
+        {
+            if (ModelState.IsValid)
+            {
+                if (message.IsPublish ?? false)
+                    await _pubSub.PublishGCP(new PublishMessageEvent(message.MessageContent, message.PublishedAt), message.Topic);
+
+                return Ok();
+            }
+            else
+            {
+                return Ok("Model-State Invalid");
+            }
+        }
+
+        [HttpPost("/Subscribe/Message/Gcp")]
+        public async Task<IActionResult> SubscribeGcp([FromQuery, BindRequired] string subscriberName)
+        {
+            await _pubSub.SubscriberCreateGCP(subscriberName);
+            return Ok();
         }
     }
 }

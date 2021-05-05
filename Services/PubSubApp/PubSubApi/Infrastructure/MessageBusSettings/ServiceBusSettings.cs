@@ -17,4 +17,9 @@ namespace PubSubApi.Infrastructure.MessageBusSettings
 
         public string Subscriberwithsession { get; set; }
     }
+
+    public sealed class GCPPubSubSettings
+    {
+        public string ProjectID { get; set; }
+    }
 }

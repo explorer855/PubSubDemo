@@ -1,6 +1,7 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AzureMessageBus;
+using GooglePubSub;
 using MessageBusCore;
 using MessageBusCore.Abstractions;
 using Microsoft.AspNetCore.Builder;
@@ -38,7 +39,7 @@ namespace PubSubApi
 
             services.AddMvcCoreService()
                 .AddSessionsService()
-                .AddApplicationsIOptions(Configuration)
+                //.AddApplicationsIOptions(Configuration)
                 .AddIntegrationsServices(Configuration)
                 .RegisterServiceBus(Configuration);
 
@@ -126,17 +127,19 @@ namespace PubSubApi
         public static IServiceCollection AddIntegrationsServices(this IServiceCollection services,
             IConfiguration _config)
         {
-            //services.AddTransient<IEventService, EventService>();
-
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<ServiceBusPersisterConnection>>();
 
                 var serviceBusConnectionString = _config.GetSection("ServiceBusSettings:ConnectionString");
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString.Value);
-                //var subscriptionClientName = _config["SubscriptionClient"];
-
                 return new ServiceBusPersisterConnection(serviceBusConnection, logger, string.Empty);
+            });
+
+            services.AddSingleton<IPubSubPersisterConnection>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<PubSubPersisterConnection>>();
+                return new PubSubPersisterConnection(_config);
             });
 
             return services;
@@ -146,6 +149,7 @@ namespace PubSubApi
             IConfiguration _config)
         {
             services.Configure<ServiceBusSettings>(options => _config.GetSection(nameof(ServiceBusSettings)).Bind(options));
+            services.Configure<GCPPubSubSettings>(options => _config.GetSection(nameof(GCPPubSubSettings)).Bind(options));
             return services;
         }
 
@@ -161,6 +165,16 @@ namespace PubSubApi
 
                 return new EventBusServiceBus(serviceBusPersisterConnection, logger,
                     eventBusSubcriptionsManager, _config["SubscriptionClient"], iLifetimeScope, _config);
+            });
+
+            services.AddSingleton<IGcpPubSub, EventBusPubSub>(sp =>
+            {
+                var pubsubPersisterConnection = sp.GetRequiredService<IPubSubPersisterConnection>();
+                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
+                var logger = sp.GetRequiredService<ILogger<EventBusPubSub>>();
+                var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
+
+                return new EventBusPubSub(pubsubPersisterConnection, eventBusSubcriptionsManager, iLifetimeScope, logger);
             });
 
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
