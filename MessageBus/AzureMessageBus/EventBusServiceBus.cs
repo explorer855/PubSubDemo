@@ -108,16 +108,15 @@ namespace AzureMessageBus
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
                     });
-
-                    _subsManager.AddSubscription<T, TH>();
                 }
-                catch (ServiceBusException ex)
+                catch (ServiceBusException)
                 {
-                    _logger.LogWarning("The messaging entity {eventName} already exists.", eventName);
+                    _logger.LogWarning("The Rules to create filters for the messaging entity {eventName} already exists.", eventName);
                     throw;
                 }
                 finally
                 {
+                    _subsManager.AddSubscription<T, TH>();
                     RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber);
                 }
             }
