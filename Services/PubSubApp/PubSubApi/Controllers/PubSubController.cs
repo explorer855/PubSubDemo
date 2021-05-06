@@ -31,7 +31,7 @@ namespace PubSubApi.Controllers
             if (ModelState.IsValid)
             {
                 if (message.IsPublish ?? false)
-                    await Task.Run(() => _eventBus.PublishAzure(new PublishMessageEvent(message.MessageContent, message.PublishedAt)));
+                    await _eventBus.PublishAzure(new PublishMessageEvent(message.MessageContent, message.PublishedAt));
 
                 return Ok();
             }
@@ -44,7 +44,7 @@ namespace PubSubApi.Controllers
         [HttpPost("/Subscribe/Message")]
         public async Task<IActionResult> Subscribe([FromQuery, BindRequired] string subscriberName)
         {
-            await Task.Run(() => _eventBus.SubscriberCreateAzure<PublishMessageEvent, PublishMessageEventHandler>(subscriberName));
+            await _eventBus.SubscriberCreateAzure<PublishMessageEvent, ServiceBusMessageEventHandler>(subscriberName);
             return Ok("Model-State Invalid");
         }
 
@@ -67,7 +67,7 @@ namespace PubSubApi.Controllers
         [HttpPost("/Subscribe/Message/Gcp")]
         public async Task<IActionResult> SubscribeGcp([FromQuery, BindRequired] string subscriberName)
         {
-            await _pubSub.SubscriberCreateGCP(subscriberName);
+            await _pubSub.SubscriberCreateGCP<PublishMessageEvent, PubSubMessageEventHandler>(subscriberName);
             return Ok();
         }
     }

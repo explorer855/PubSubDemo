@@ -8,9 +8,13 @@ namespace MessageBusCore.Abstractions
         #region GCP
         Task PublishGCP(IntegrationEvent @event, string topicId);
 
-        void SubscribeGCP();
+        void SubscribeGCP<T, TH>()
+            where T : IntegrationEvent
+            where TH : IIntegrationEventHandler<T>;
 
-        Task SubscriberCreateGCP(string subscriber);
+        Task SubscriberCreateGCP<T, TH>(string subscriber)
+            where T : IntegrationEvent
+            where TH : IIntegrationEventHandler<T>;
 
         #endregion
     }

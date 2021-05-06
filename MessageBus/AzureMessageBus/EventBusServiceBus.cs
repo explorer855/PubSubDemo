@@ -36,7 +36,7 @@ namespace AzureMessageBus
             _subscriber = string.Empty;
         }
 
-        public void PublishAzure(IntegrationEvent @event, string authHeader = "")
+        public async Task PublishAzure(IntegrationEvent @event)
         {
             var eventName = @event.GetType().Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
             var jsonMessage = JsonConvert.SerializeObject(@event);
@@ -49,8 +49,7 @@ namespace AzureMessageBus
                 Body = body,
                 Label = eventName,
             };
-            _serviceBusPersisterConnection.TopicClient.SendAsync(message)
-                .GetAwaiter().GetResult();
+            await _serviceBusPersisterConnection.TopicClient.SendAsync(message);
         }
 
         public void SubscribeDynamicAzure<TH>(string eventName)
@@ -61,7 +60,7 @@ namespace AzureMessageBus
             _subsManager.AddDynamicSubscription<TH>(eventName);
         }
 
-        public void SubscribeAzure<T, TH>()
+        public async Task SubscribeAzure<T, TH>()
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
@@ -72,11 +71,11 @@ namespace AzureMessageBus
             {
                 try
                 {
-                    _serviceBusPersisterConnection.SubscriptionClient.AddRuleAsync(new RuleDescription
+                    await _serviceBusPersisterConnection.SubscriptionClient.AddRuleAsync(new RuleDescription
                     {
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
-                    }).GetAwaiter().GetResult();
+                    });
                 }
                 catch (ServiceBusException)
                 {
@@ -93,7 +92,7 @@ namespace AzureMessageBus
             _subsManager.AddSubscription<T, TH>();
         }
 
-        public void SubscriberCreateAzure<T, TH>(string subscriber)
+        public async Task SubscriberCreateAzure<T, TH>(string subscriber)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
@@ -104,11 +103,11 @@ namespace AzureMessageBus
             {
                 try
                 {
-                    _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber).AddRuleAsync(new RuleDescription
+                    await _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber).AddRuleAsync(new RuleDescription
                     {
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
-                    }).GetAwaiter().GetResult();
+                    });
 
                     _subsManager.AddSubscription<T, TH>();
                 }
