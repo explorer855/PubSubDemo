@@ -180,7 +180,8 @@ namespace PubSubApi
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
 
             // Register Messagehandlers
-            services.AddTransient<PublishMessageEventHandler>();
+            services.AddTransient<ServiceBusMessageEventHandler>();
+            services.AddTransient<PubSubMessageEventHandler>();
 
             return services;
         }

@@ -1,4 +1,5 @@
 ﻿using MessageBusCore.Events;
+using System.Threading.Tasks;
 
 namespace MessageBusCore.Abstractions
 {
@@ -6,13 +7,13 @@ namespace MessageBusCore.Abstractions
     {
         #region Azure
 
-        void PublishAzure(IntegrationEvent @event, string authHeader = "");
+        Task PublishAzure(IntegrationEvent @event);
 
-        void SubscribeAzure<T, TH>()
+        Task SubscribeAzure<T, TH>()
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>;
 
-        void SubscriberCreateAzure<T, TH>(string subscriber)
+        Task SubscriberCreateAzure<T, TH>(string subscriber)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>;
 
