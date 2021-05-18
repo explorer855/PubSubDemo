@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using PubSubApi.Infrastructure.IntegrationEvents;
-using PubSubApi.Infrastructure.Models.Request;
 using System.Threading.Tasks;
 
 namespace PubSubApi.Controllers
@@ -13,10 +12,13 @@ namespace PubSubApi.Controllers
     {
         private readonly IEventBus _eventBus;
         private readonly IGcpPubSub _pubSub;
-        public PubSubController(IEventBus eventBus, IGcpPubSub gcpPubSub)
+        private readonly IAwsSqsQueue _awsSqs;
+        public PubSubController(IEventBus eventBus,
+            IGcpPubSub gcpPubSub, IAwsSqsQueue sqsQueue)
         {
             _eventBus = eventBus;
             _pubSub = gcpPubSub;
+            _awsSqs = sqsQueue;
         }
 
         [HttpGet("/Default")]
@@ -25,14 +27,16 @@ namespace PubSubApi.Controllers
             return Task.CompletedTask;
         }
 
-        [HttpPost("/Publish/Message")]
-        public async Task<IActionResult> Publish([FromBody] PublishMessage message)
+        /// <summary>
+        /// Publish messages to Azure Service Bus Topics
+        /// </summary>
+        /// <param name="message"></param>
+        [HttpPost("/Publish/Message/Az")]
+        public async Task<IActionResult> Publish([FromBody] MessageObjectEntity message)
         {
             if (ModelState.IsValid)
             {
-                if (message.IsPublish ?? false)
-                    await _eventBus.PublishAzure(new PublishMessageEvent(message.MessageContent, message.PublishedAt));
-
+                await _eventBus.PublishAzure(new PublishMessageEvent(message.MessageContent, message.TimeStamp), message.Topic);
                 return Ok();
             }
             else
@@ -41,21 +45,28 @@ namespace PubSubApi.Controllers
             }
         }
 
-        [HttpPost("/Subscribe/Message")]
-        public async Task<IActionResult> Subscribe([FromQuery, BindRequired] string subscriberName)
+        /// <summary>
+        /// Subscribe to messages of Azure Service Bus Topics
+        /// </summary>
+        /// <param name="subscriberName"></param>
+        [HttpPost("/Subscribe/Message/Az")]
+        public async Task<IActionResult> Subscribe([FromQuery, BindRequired] string topic, [FromQuery, BindRequired] string subscriberName)
         {
-            await _eventBus.SubscriberCreateAzure<PublishMessageEvent, ServiceBusMessageEventHandler>(subscriberName);
-            return Ok("Model-State Invalid");
+            await _eventBus.SubscriberCreateAzure<PublishMessageEvent, ServiceBusMessageEventHandler>(subscriberName, topic);
+            return Ok();
         }
 
+        /// <summary>
+        /// Publish Messages to GCP Pub/Sub Topics
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         [HttpPost("/Publish/Message/Gcp")]
-        public async Task<IActionResult> PublishGcp([FromBody] PublishMessageGcp message)
+        public async Task<IActionResult> PublishGcp([FromBody] MessageObjectEntity message)
         {
             if (ModelState.IsValid)
             {
-                if (message.IsPublish ?? false)
-                    await _pubSub.PublishGCP(new PublishMessageEvent(message.MessageContent, message.PublishedAt), message.Topic);
-
+                await _pubSub.PublishGCP(new PublishMessageEvent(message.MessageContent, message.TimeStamp), message.Topic);
                 return Ok();
             }
             else
@@ -64,10 +75,53 @@ namespace PubSubApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Subscribe Messages from GCP Pub/Sub Topics
+        /// </summary>
+        /// <param name="subscriberName"></param>
+        /// <returns></returns>
         [HttpPost("/Subscribe/Message/Gcp")]
         public async Task<IActionResult> SubscribeGcp([FromQuery, BindRequired] string subscriberName)
         {
             await _pubSub.SubscriberCreateGCP<PublishMessageEvent, PubSubMessageEventHandler>(subscriberName);
+            return Ok();
+        }
+
+        [HttpGet("/Queues/List/Sqs")]
+        public async Task<IActionResult> SqsQueues()
+        {
+            await _awsSqs.ShowQueues();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Publish Messages to GCP Pub/Sub Topics
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        [HttpPost("/Publish/Message/Sqs")]
+        public async Task<IActionResult> PublishSqs([FromBody] MessageObjectEntity message)
+        {
+            if (ModelState.IsValid)
+            {
+                await _awsSqs.PublishSqs(new PublishMessageEvent(message.MessageContent, message.TimeStamp));
+                return Ok();
+            }
+            else
+            {
+                return Ok("Model-State Invalid");
+            }
+        }
+
+        /// <summary>
+        /// Subscribe Messages from GCP Pub/Sub Topics
+        /// </summary>
+        /// <param name="subscriberName"></param>
+        /// <returns></returns>
+        [HttpPost("/Subscribe/Message/Sqs")]
+        public async Task<IActionResult> SubscribeSqs([FromQuery, BindRequired] string subscriberName)
+        {
+            await _awsSqs.SubscriberCreateSqs<PublishMessageEvent, SqsMessageEventHandler>(subscriberName);
             return Ok();
         }
     }

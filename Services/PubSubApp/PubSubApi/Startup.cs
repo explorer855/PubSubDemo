@@ -1,5 +1,7 @@
+using Amazon.SQS;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using AwsSqsService;
 using AzureMessageBus;
 using GooglePubSub;
 using MessageBusCore;
@@ -53,6 +55,7 @@ namespace PubSubApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             this.AutofacContainer = app.ApplicationServices.GetAutofacRoot();
+            //CustomAppExtensions.ConfigureEventBus(app);
 
             if (env.IsDevelopment())
             {
@@ -124,9 +127,16 @@ namespace PubSubApi
             return services;
         }
 
+        /// <summary>
+        /// Adds up integration Services dependencies
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="_config"></param>
+        /// <returns></returns>
         public static IServiceCollection AddIntegrationsServices(this IServiceCollection services,
             IConfiguration _config)
         {
+            // Azure Message Bus dependencies 
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<ServiceBusPersisterConnection>>();
@@ -136,10 +146,20 @@ namespace PubSubApi
                 return new ServiceBusPersisterConnection(serviceBusConnection, logger, string.Empty);
             });
 
+            // GCP Pub/Sub dependencies
             services.AddSingleton<IPubSubPersisterConnection>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<PubSubPersisterConnection>>();
-                return new PubSubPersisterConnection(_config);
+                return new PubSubPersisterConnection(logger, _config);
+            });
+
+            // AWS SQS dependencies
+            services.AddDefaultAWSOptions(_config.GetAWSOptions());
+            services.AddAWSService<IAmazonSQS>();
+
+            services.AddSingleton<ISqsPersisterConnection>(opts => {
+                var logger = opts.GetRequiredService < ILogger<SqsPersisterConnection>>();
+                return new SqsPersisterConnection(logger, _config);
             });
 
             return services;
@@ -153,6 +173,11 @@ namespace PubSubApi
             return services;
         }
 
+        /// <summary>
+        /// Register SQS, Pub/Sub, Azure Service Bus dependencies.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="_config"></param>
         public static IServiceCollection RegisterServiceBus(this IServiceCollection services,
             IConfiguration _config)
         {
@@ -177,13 +202,36 @@ namespace PubSubApi
                 return new EventBusPubSub(pubsubPersisterConnection, eventBusSubcriptionsManager, iLifetimeScope, logger);
             });
 
+            services.AddSingleton<IAwsSqsQueue, EventBusSqs>(sp =>
+            {
+                var pubsubPersisterConnection = sp.GetRequiredService<ISqsPersisterConnection>();
+                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
+                var logger = sp.GetRequiredService<ILogger<EventBusSqs>>();
+                var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
+
+
+                return new EventBusSqs(pubsubPersisterConnection, logger, eventBusSubcriptionsManager, iLifetimeScope, _config, _config.GetAWSOptions().CreateServiceClient<IAmazonSQS>());
+            });
+
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
 
             // Register Messagehandlers
             services.AddTransient<ServiceBusMessageEventHandler>();
             services.AddTransient<PubSubMessageEventHandler>();
+            services.AddTransient<SqsMessageEventHandler>();
 
             return services;
+        }
+
+        public static void ConfigureEventBus(IApplicationBuilder app)
+        {
+            var eventBus = app.ApplicationServices.GetRequiredService<IAwsSqsQueue>();
+
+            #region Configure Event Bus
+
+            eventBus.SubscriberCreateSqs<PublishMessageEvent, SqsMessageEventHandler>(string.Empty);
+
+            #endregion Configure Event Bus
         }
 
         #endregion Configure Services for App

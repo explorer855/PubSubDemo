@@ -78,7 +78,7 @@ namespace GooglePubSub
             {
                 throw;
             }
-
+            _subsManager.AddSubscription<T, TH>();
         }
 
         private async Task ProcessMessagesAsync(SubscriberClient _subscriber, string eventName)

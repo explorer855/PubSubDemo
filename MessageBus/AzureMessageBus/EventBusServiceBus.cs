@@ -24,6 +24,7 @@ namespace AzureMessageBus
         private readonly string AUTOFAC_SCOPE_NAME = "event_bus";
         private const string INTEGRATION_EVENT_SUFFIX = "IntegrationEvent";
         private string _subscriber;
+        private string _topic;
 
         public EventBusServiceBus(IServiceBusPersisterConnection serviceBusPersisterConnection,
             ILogger<EventBusServiceBus> logger, IEventBusSubscriptionsManager subsManager, string subscriptionClientName,
@@ -34,9 +35,10 @@ namespace AzureMessageBus
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
             _autofac = autofac;
             _subscriber = string.Empty;
+            _topic = string.Empty;
         }
 
-        public async Task PublishAzure(IntegrationEvent @event)
+        public async Task PublishAzure(IntegrationEvent @event, string topicName)
         {
             var eventName = @event.GetType().Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
             var jsonMessage = JsonConvert.SerializeObject(@event);
@@ -49,7 +51,7 @@ namespace AzureMessageBus
                 Body = body,
                 Label = eventName,
             };
-            await _serviceBusPersisterConnection.TopicClient.SendAsync(message);
+            await _serviceBusPersisterConnection.TopicClient(topicName).SendAsync(message);
         }
 
         public void SubscribeDynamicAzure<TH>(string eventName)
@@ -83,7 +85,7 @@ namespace AzureMessageBus
                 }
                 finally
                 {
-                    RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber);
+                    RegisterSubscriptionClientMessageHandler();
                 }
             }
 
@@ -92,7 +94,7 @@ namespace AzureMessageBus
             _subsManager.AddSubscription<T, TH>();
         }
 
-        public async Task SubscriberCreateAzure<T, TH>(string subscriber)
+        public async Task SubscriberCreateAzure<T, TH>(string subscriber, string topic)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
@@ -103,7 +105,7 @@ namespace AzureMessageBus
             {
                 try
                 {
-                    await _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber).AddRuleAsync(new RuleDescription
+                    await _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber, topic).AddRuleAsync(new RuleDescription
                     {
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
@@ -117,7 +119,7 @@ namespace AzureMessageBus
                 finally
                 {
                     _subsManager.AddSubscription<T, TH>();
-                    RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber);
+                    RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber, topic);
                 }
             }
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
@@ -175,16 +177,16 @@ namespace AzureMessageBus
             }
         }
 
-        private void RegisterSessionEnabledSubscriptionClientMessageHandler(string subscriber)
+        private void RegisterSessionEnabledSubscriptionClientMessageHandler(string subscriber, string topicName)
         {
-
+            _topic = topicName;
             var sessionHandlerOptions = new SessionHandlerOptions(ExceptionReceivedHandler)
             {
                 MaxConcurrentSessions = 2,
                 MessageWaitTimeout = TimeSpan.FromSeconds(1),
                 AutoComplete = false
             };
-            _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber)?.RegisterSessionHandler(ProcessSessionMessagesAsync, sessionHandlerOptions);
+            _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topicName)?.RegisterSessionHandler(ProcessSessionMessagesAsync, sessionHandlerOptions);
         }
 
         private async Task ProcessSessionMessagesAsync(IMessageSession session, Message message, CancellationToken token)
@@ -194,7 +196,7 @@ namespace AzureMessageBus
             if (await ProcessEvent(message.Label, messageData))
             {
                 await session.CompleteAsync(message.SystemProperties.LockToken);
-                await _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber).CompleteAsync(message.SystemProperties.LockToken);
+                await _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber, _topic).CompleteAsync(message.SystemProperties.LockToken);
             }
         }
 

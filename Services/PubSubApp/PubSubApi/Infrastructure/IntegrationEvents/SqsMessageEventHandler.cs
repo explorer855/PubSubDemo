@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace PubSubApi.Infrastructure.IntegrationEvents
 {
-    public class PubSubMessageEventHandler 
-        : IIntegrationEventHandler<PublishMessageEvent>
+    public class SqsMessageEventHandler
+    : IIntegrationEventHandler<PublishMessageEvent>
     {
-        private readonly ILogger<PubSubMessageEventHandler> _logger;
+        private readonly ILogger<SqsMessageEventHandler> _logger;
 
-        public PubSubMessageEventHandler(ILogger<PubSubMessageEventHandler> logger)
+        public SqsMessageEventHandler(ILogger<SqsMessageEventHandler> logger)
         {
             _logger = logger;
         }

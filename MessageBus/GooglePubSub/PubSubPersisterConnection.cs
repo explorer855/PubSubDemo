@@ -2,6 +2,7 @@
 using Google.Cloud.PubSub.V1;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -13,11 +14,14 @@ namespace GooglePubSub
     public sealed class PubSubPersisterConnection
         : IPubSubPersisterConnection
     {
+        private readonly ILogger<PubSubPersisterConnection> _logger;
         bool _disposed;
         private readonly IConfiguration _config;
-        public PubSubPersisterConnection(IConfiguration configuration)
+        public PubSubPersisterConnection(ILogger<PubSubPersisterConnection> logger,
+            IConfiguration configuration)
         {
             _config = configuration;
+            _logger = logger;
         }
 
         public async Task<PublisherClient> PublisherClientAsync(string topicId)
