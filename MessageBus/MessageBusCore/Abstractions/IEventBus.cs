@@ -7,13 +7,13 @@ namespace MessageBusCore.Abstractions
     {
         #region Azure
 
-        Task PublishAzure(IntegrationEvent @event);
+        Task PublishAzure(IntegrationEvent @event, string topicName);
 
         Task SubscribeAzure<T, TH>()
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>;
 
-        Task SubscriberCreateAzure<T, TH>(string subscriber)
+        Task SubscriberCreateAzure<T, TH>(string subscriber, string topic)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>;
 

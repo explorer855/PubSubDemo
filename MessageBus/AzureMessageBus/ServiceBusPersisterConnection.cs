@@ -28,15 +28,15 @@ namespace AzureMessageBus
             //_topicClient = new TopicClient(_serviceBusConnectionStringBuilder, RetryPolicy.Default);
         }
 
-        public ITopicClient TopicClient
+        public ITopicClient TopicClient(string topicName)
         {
-            get
-            {
+            //get
+            //{
                 try
                 {
                     if (_topicClient?.IsClosedOrClosing ?? false || _topicClient == null)
                     {
-                        _topicClient = new TopicClient(_serviceBusConnectionStringBuilder, RetryPolicy.Default);
+                        _topicClient = new TopicClient(_serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), topicName, RetryPolicy.Default);
                     }
                     return _topicClient;
                 }
@@ -44,7 +44,7 @@ namespace AzureMessageBus
                 {
                     throw;
                 }
-            }
+            //}
         }
 
         public ISubscriptionClient SubscriptionClient
@@ -71,13 +71,13 @@ namespace AzureMessageBus
             return _topicClient;
         }
 
-        public ISubscriptionClient SubscriptionClientCreate(string subscriber)
+        public ISubscriptionClient SubscriptionClientCreate(string subscriber, string topicName)
         {
             try
             {
                 if (_subscriptionClient?.IsClosedOrClosing ?? false || _subscriptionClient == null)
                 {
-                    _subscriptionClient = new SubscriptionClient(_serviceBusConnectionStringBuilder, subscriber);
+                    _subscriptionClient = new SubscriptionClient(_serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), topicName, subscriber);
                 }
                 return _subscriptionClient;
             }
