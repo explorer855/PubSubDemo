@@ -85,7 +85,7 @@ namespace AzureMessageBus
                 }
                 finally
                 {
-                    RegisterSubscriptionClientMessageHandler();
+                    RegisterSubscriptionClientMessageHandler(string.Empty, string.Empty);
                 }
             }
 
@@ -118,11 +118,13 @@ namespace AzureMessageBus
                 }
                 finally
                 {
-                    _subsManager.AddSubscription<T, TH>();
+                    RemoveDefaultRule(_subscriber, topic);
                     RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber, topic);
+                    RegisterSubscriptionClientMessageHandler(_subscriber, topic);
                 }
             }
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
+            _subsManager.AddSubscription<T, TH>();
         }
 
         public void UnsubscribeAzure<T, TH>()
@@ -157,24 +159,21 @@ namespace AzureMessageBus
             _subsManager.RemoveDynamicSubscription<TH>(eventName);
         }
 
-        private void RegisterSubscriptionClientMessageHandler()
+        private void RegisterSubscriptionClientMessageHandler(string subscriber, string topic)
         {
-            if (_serviceBusPersisterConnection.SubscriptionClient != null)
-            {
-                _serviceBusPersisterConnection.SubscriptionClient.RegisterMessageHandler(
-               async (message, token) =>
-               {
-                   //var eventName = $"{message.Label}{INTEGRATION_EVENT_SUFFIX}";
-                   var messageData = Encoding.UTF8.GetString(message.Body);
+            _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic)?.RegisterMessageHandler(
+           async (message, token) =>
+           {
+               //var eventName = $"{message.Label}{INTEGRATION_EVENT_SUFFIX}";
+               var messageData = Encoding.UTF8.GetString(message.Body);
 
-                   // Complete the message so that it is not received again.
-                   if (await ProcessEvent(message.Label, messageData))
-                   {
-                       await _serviceBusPersisterConnection.SubscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
-                   }
-               },
-               new MessageHandlerOptions(ExceptionReceivedHandler) { MaxConcurrentCalls = 10, AutoComplete = false });
-            }
+               // Complete the message so that it is not received again.
+               if (await ProcessEvent(message.Label, messageData))
+               {
+                   await _serviceBusPersisterConnection.SubscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
+               }
+           },
+           new MessageHandlerOptions(ExceptionReceivedHandler) { MaxConcurrentCalls = 10, AutoComplete = false });
         }
 
         private void RegisterSessionEnabledSubscriptionClientMessageHandler(string subscriber, string topicName)
@@ -242,18 +241,15 @@ namespace AzureMessageBus
             return processed;
         }
 
-        private void RemoveDefaultRule()
+        private void RemoveDefaultRule(string subscriber, string topic)
         {
             try
             {
-                if (_serviceBusPersisterConnection.SubscriptionClient != null)
-                {
-                    _serviceBusPersisterConnection
-                   .SubscriptionClient
-                   .RemoveRuleAsync(RuleDescription.DefaultRuleName)
-                    .GetAwaiter()
-                    .GetResult();
-                }
+                _serviceBusPersisterConnection
+               .SubscriptionClientCreate(subscriber, topic)?
+               .RemoveRuleAsync(RuleDescription.DefaultRuleName)
+                .GetAwaiter()
+                .GetResult();
             }
             catch (MessagingEntityNotFoundException)
             {
