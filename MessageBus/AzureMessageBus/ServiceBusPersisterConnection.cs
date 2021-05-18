@@ -75,7 +75,7 @@ namespace AzureMessageBus
         {
             try
             {
-                if (_subscriptionClient?.IsClosedOrClosing ?? false || _subscriptionClient == null)
+                if (_subscriptionClient?.SubscriptionName != subscriber)
                 {
                     _subscriptionClient = new SubscriptionClient(_serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), topicName, subscriber);
                 }

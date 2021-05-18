@@ -9,7 +9,7 @@ namespace MessageBusCore.Abstractions
 
         Task PublishAzure(IntegrationEvent @event, string topicName);
 
-        Task SubscribeAzure<T, TH>()
+        Task SubscribeAzure<T, TH>(string subscriber, string topic)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>;
 

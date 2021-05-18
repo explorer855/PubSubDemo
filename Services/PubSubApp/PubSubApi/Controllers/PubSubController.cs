@@ -11,14 +11,15 @@ namespace PubSubApi.Controllers
     public class PubSubController : ControllerBase
     {
         private readonly IEventBus _eventBus;
-        private readonly IGcpPubSub _pubSub;
-        private readonly IAwsSqsQueue _awsSqs;
-        public PubSubController(IEventBus eventBus,
-            IGcpPubSub gcpPubSub, IAwsSqsQueue sqsQueue)
+        //private readonly IGcpPubSub _pubSub;
+        //private readonly IAwsSqsQueue _awsSqs;
+        public PubSubController(IEventBus eventBus)
+            //,
+            //IGcpPubSub gcpPubSub, IAwsSqsQueue sqsQueue)
         {
             _eventBus = eventBus;
-            _pubSub = gcpPubSub;
-            _awsSqs = sqsQueue;
+            //_pubSub = gcpPubSub;
+            //_awsSqs = sqsQueue;
         }
 
         [HttpGet("/Default")]
@@ -52,6 +53,17 @@ namespace PubSubApi.Controllers
         [HttpPost("/Subscribe/Message/Az")]
         public async Task<IActionResult> Subscribe([FromQuery, BindRequired] string topic, [FromQuery, BindRequired] string subscriberName)
         {
+            await _eventBus.SubscribeAzure<PublishMessageEvent, ServiceBusMessageEventHandler>(subscriberName, topic);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Subscribe to messages of Azure Service Bus Topics
+        /// </summary>
+        /// <param name="subscriberName"></param>
+        [HttpPost("/SubscribeWithSEssion/Message/Az")]
+        public async Task<IActionResult> SubscribeWOSession([FromQuery, BindRequired] string topic, [FromQuery, BindRequired] string subscriberName)
+        {
             await _eventBus.SubscriberCreateAzure<PublishMessageEvent, ServiceBusMessageEventHandler>(subscriberName, topic);
             return Ok();
         }
@@ -66,7 +78,7 @@ namespace PubSubApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _pubSub.PublishGCP(new PublishMessageEvent(message.MessageContent, message.TimeStamp), message.Topic);
+                //await _pubSub.PublishGCP(new PublishMessageEvent(message.MessageContent, message.TimeStamp), message.Topic);
                 return Ok();
             }
             else
@@ -83,14 +95,14 @@ namespace PubSubApi.Controllers
         [HttpPost("/Subscribe/Message/Gcp")]
         public async Task<IActionResult> SubscribeGcp([FromQuery, BindRequired] string subscriberName)
         {
-            await _pubSub.SubscriberCreateGCP<PublishMessageEvent, PubSubMessageEventHandler>(subscriberName);
+            //await _pubSub.SubscriberCreateGCP<PublishMessageEvent, PubSubMessageEventHandler>(subscriberName);
             return Ok();
         }
 
         [HttpGet("/Queues/List/Sqs")]
         public async Task<IActionResult> SqsQueues()
         {
-            await _awsSqs.ShowQueues();
+            //await _awsSqs.ShowQueues();
             return Ok();
         }
 
@@ -104,7 +116,7 @@ namespace PubSubApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _awsSqs.PublishSqs(new PublishMessageEvent(message.MessageContent, message.TimeStamp));
+                //await _awsSqs.PublishSqs(new PublishMessageEvent(message.MessageContent, message.TimeStamp));
                 return Ok();
             }
             else
@@ -121,7 +133,7 @@ namespace PubSubApi.Controllers
         [HttpPost("/Subscribe/Message/Sqs")]
         public async Task<IActionResult> SubscribeSqs([FromQuery, BindRequired] string subscriberName)
         {
-            await _awsSqs.SubscriberCreateSqs<PublishMessageEvent, SqsMessageEventHandler>(subscriberName);
+            //await _awsSqs.SubscriberCreateSqs<PublishMessageEvent, SqsMessageEventHandler>(subscriberName);
             return Ok();
         }
     }

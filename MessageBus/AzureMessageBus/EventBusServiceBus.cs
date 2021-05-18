@@ -62,18 +62,18 @@ namespace AzureMessageBus
             _subsManager.AddDynamicSubscription<TH>(eventName);
         }
 
-        public async Task SubscribeAzure<T, TH>()
+        public async Task SubscribeAzure<T, TH>(string subscriber, string topic)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
             var eventName = typeof(T).Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
 
             var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
-            if (!containsKey)
-            {
-                try
+            //if (!containsKey)
+            //{
+            try
                 {
-                    await _serviceBusPersisterConnection.SubscriptionClient.AddRuleAsync(new RuleDescription
+                    await _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic).AddRuleAsync(new RuleDescription
                     {
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
@@ -85,13 +85,15 @@ namespace AzureMessageBus
                 }
                 finally
                 {
-                    RegisterSubscriptionClientMessageHandler(string.Empty, string.Empty);
+                    RemoveDefaultRule(subscriber, topic);
+
+                    if (!containsKey)
+                        _subsManager.AddSubscription<T, TH>();
+
+                    RegisterSubscriptionClientMessageHandler(subscriber, topic);
                 }
-            }
-
+            //}
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
-
-            _subsManager.AddSubscription<T, TH>();
         }
 
         public async Task SubscriberCreateAzure<T, TH>(string subscriber, string topic)
@@ -101,8 +103,8 @@ namespace AzureMessageBus
             var eventName = typeof(T).Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
             _subscriber = subscriber;
             var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
-            if (!containsKey)
-            {
+            //if (!containsKey)
+            //{
                 try
                 {
                     await _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber, topic).AddRuleAsync(new RuleDescription
@@ -119,12 +121,13 @@ namespace AzureMessageBus
                 finally
                 {
                     RemoveDefaultRule(_subscriber, topic);
+                    if (!containsKey)
+                        _subsManager.AddSubscription<T, TH>();
+
                     RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber, topic);
-                    RegisterSubscriptionClientMessageHandler(_subscriber, topic);
                 }
-            }
+            //}
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
-            _subsManager.AddSubscription<T, TH>();
         }
 
         public void UnsubscribeAzure<T, TH>()
@@ -170,7 +173,7 @@ namespace AzureMessageBus
                // Complete the message so that it is not received again.
                if (await ProcessEvent(message.Label, messageData))
                {
-                   await _serviceBusPersisterConnection.SubscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
+                   await _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic).CompleteAsync(message.SystemProperties.LockToken);
                }
            },
            new MessageHandlerOptions(ExceptionReceivedHandler) { MaxConcurrentCalls = 10, AutoComplete = false });
