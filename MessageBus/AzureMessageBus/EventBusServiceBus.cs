@@ -21,7 +21,7 @@ namespace AzureMessageBus
         private readonly ILogger<EventBusServiceBus> _logger;
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly ILifetimeScope _autofac;
-        private readonly string AUTOFAC_SCOPE_NAME = "event_bus";
+        private readonly string AUTOFAC_SCOPE_NAME;
         private const string INTEGRATION_EVENT_SUFFIX = "IntegrationEvent";
         private string _subscriber;
         private string _topic;
@@ -33,6 +33,7 @@ namespace AzureMessageBus
             _serviceBusPersisterConnection = serviceBusPersisterConnection;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
+            AUTOFAC_SCOPE_NAME = configuration.GetSection("NameSpace:Azure")?.Value.ToString();
             _autofac = autofac;
             _subscriber = string.Empty;
             _topic = string.Empty;
@@ -107,7 +108,7 @@ namespace AzureMessageBus
             //{
                 try
                 {
-                    await _serviceBusPersisterConnection.SubscriptionClientCreate(_subscriber, topic).AddRuleAsync(new RuleDescription
+                    await _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic).AddRuleAsync(new RuleDescription
                     {
                         Filter = new CorrelationFilter { Label = eventName },
                         Name = eventName,
@@ -120,11 +121,11 @@ namespace AzureMessageBus
                 }
                 finally
                 {
-                    RemoveDefaultRule(_subscriber, topic);
+                    RemoveDefaultRule(subscriber, topic);
                     if (!containsKey)
                         _subsManager.AddSubscription<T, TH>();
 
-                    RegisterSessionEnabledSubscriptionClientMessageHandler(_subscriber, topic);
+                    RegisterSessionEnabledSubscriptionClientMessageHandler(subscriber, topic);
                 }
             //}
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);

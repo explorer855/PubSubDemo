@@ -11,14 +11,13 @@ namespace PubSubApi.Controllers
     public class PubSubController : ControllerBase
     {
         private readonly IEventBus _eventBus;
-        //private readonly IGcpPubSub _pubSub;
+        private readonly IGcpPubSub _pubSub;
         //private readonly IAwsSqsQueue _awsSqs;
-        public PubSubController(IEventBus eventBus)
-            //,
-            //IGcpPubSub gcpPubSub, IAwsSqsQueue sqsQueue)
+        public PubSubController(IEventBus eventBus,
+            IGcpPubSub gcpPubSub)// IAwsSqsQueue sqsQueue)
         {
             _eventBus = eventBus;
-            //_pubSub = gcpPubSub;
+            _pubSub = gcpPubSub;
             //_awsSqs = sqsQueue;
         }
 
@@ -78,7 +77,7 @@ namespace PubSubApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                //await _pubSub.PublishGCP(new PublishMessageEvent(message.MessageContent, message.TimeStamp), message.Topic);
+                await _pubSub.PublishGCP(new PublishMessageEvent(message.MessageContent, message.TimeStamp), message.Topic);
                 return Ok();
             }
             else
@@ -95,7 +94,7 @@ namespace PubSubApi.Controllers
         [HttpPost("/Subscribe/Message/Gcp")]
         public async Task<IActionResult> SubscribeGcp([FromQuery, BindRequired] string subscriberName)
         {
-            //await _pubSub.SubscriberCreateGCP<PublishMessageEvent, PubSubMessageEventHandler>(subscriberName);
+            await _pubSub.SubscriberCreateGCP<PublishMessageEvent, PubSubMessageEventHandler>(subscriberName);
             return Ok();
         }
 
