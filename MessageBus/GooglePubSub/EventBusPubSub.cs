@@ -4,6 +4,7 @@ using Google.Protobuf;
 using MessageBusCore;
 using MessageBusCore.Abstractions;
 using MessageBusCore.Events;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,12 +21,13 @@ namespace GooglePubSub
         private readonly IPubSubPersisterConnection _pubSubConnection;
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly ILifetimeScope _autofac;
-        private readonly string AUTOFAC_SCOPE_NAME = "event_bus";
+        private readonly string AUTOFAC_SCOPE_NAME;
         private const string INTEGRATION_EVENT_SUFFIX = "IntegrationEvent";
 
         public EventBusPubSub(IPubSubPersisterConnection pubSubPersister, IEventBusSubscriptionsManager subsManager, ILifetimeScope lifetimeScope,
-            ILogger<EventBusPubSub> logger)
+            ILogger<EventBusPubSub> logger, IConfiguration config)
         {
+            AUTOFAC_SCOPE_NAME = config.GetSection("NameSpace:GCP")?.Value.ToString();
             _pubSubConnection = pubSubPersister;
             _subsManager = subsManager;
             _autofac = lifetimeScope;

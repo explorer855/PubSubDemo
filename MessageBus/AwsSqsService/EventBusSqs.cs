@@ -23,7 +23,7 @@ namespace AwsSqsService
         private readonly ILogger<EventBusSqs> _logger;
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly ILifetimeScope _autofac;
-        private readonly string AUTOFAC_SCOPE_NAME = "event_bus";
+        private readonly string AUTOFAC_SCOPE_NAME;
         private const string INTEGRATION_EVENT_SUFFIX = "IntegrationEvent";
         private string _subscriber;
         private readonly IAmazonSQS _sqs;
@@ -32,6 +32,7 @@ namespace AwsSqsService
             ILogger<EventBusSqs> logger, IEventBusSubscriptionsManager subsManager,
             ILifetimeScope autofac, IConfiguration configuration, IAmazonSQS amazonSQS)
         {
+            AUTOFAC_SCOPE_NAME = configuration.GetSection("NameSpace:AWS")?.Value.ToString();
             _serviceBusPersisterConnection = serviceBusPersisterConnection;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
