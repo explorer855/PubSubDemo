@@ -21,6 +21,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using PubSubApi.Infrastructure.IntegrationEvents;
 using PubSubApi.Infrastructure.MessageBusSettings;
+using System;
+using System.IO;
+using System.Reflection;
 
 namespace PubSubApi
 {
@@ -48,6 +51,7 @@ namespace PubSubApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "PubSubApi", Version = "v1" });
+                c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{typeof(Startup).GetTypeInfo().Assembly.GetName().Name}.xml"), true);
             });
         }
 

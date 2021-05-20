@@ -94,7 +94,7 @@ namespace GooglePubSub
 
                 // Stop this subscriber after one message is received.
                 // This is non-blocking, and the returned Task may be awaited.
-                _subscriber.StopAsync(TimeSpan.FromSeconds(15));
+                _subscriber.StopAsync(TimeSpan.FromSeconds(200));
                 // Return Reply.Ack to indicate this message has been handled.
                 return Task.FromResult(ack);
             });

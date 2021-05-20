@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PubSubApi.Infrastructure.IntegrationEvents
 {
-    public class PubSubMessageEventHandler 
+    public class PubSubMessageEventHandler
         : IIntegrationEventHandler<PublishMessageEvent>
     {
         private readonly ILogger<PubSubMessageEventHandler> _logger;
