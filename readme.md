@@ -19,4 +19,6 @@ This reference application is cross-platform at the server and client side, than
 
 ## Attention!!
 
-Do not commit Api Keys or any senstive information related to the App into Public/Private Repos. Test
+Do not commit Api Keys or any senstive information related to the App into Public/Private Repos. 
+
+To Test the Publish/Subscribe feature with multi-cloud(AWS/GCP/AZURE), set up the necessary development environment.
