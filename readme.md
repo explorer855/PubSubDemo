@@ -19,4 +19,4 @@ This reference application is cross-platform at the server and client side, than
 
 ## Attention!!
 
-Do not commit Api Keys or any senstive information related to the App into Public/Private Repos.
+Do not commit Api Keys or any senstive information related to the App into Public/Private Repos. Test
