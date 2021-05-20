@@ -15,13 +15,13 @@ namespace PubSubApi.Infrastructure.IntegrationEvents
             _logger = logger;
         }
 
-        public Task Handle(PublishMessageEvent @event)
+        public async Task Handle(PublishMessageEvent @event)
         {
             try
             {
                 _logger.LogInformation("Event Consumption Started at {Time}, {EventCreated}", DateTime.UtcNow, @event.CreatedOn);
                 _logger.LogInformation("Event Ended at {Time}", DateTime.UtcNow);
-                return Task.CompletedTask;
+                await Task.CompletedTask;
             }
             catch
             {
