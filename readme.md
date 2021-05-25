@@ -22,3 +22,18 @@ This reference application is cross-platform at the server and client side, than
 Do not commit Api Keys or any senstive information related to the App into Public/Private Repos. 
 
 To Test the Publish/Subscribe feature with multi-cloud(AWS/GCP/AZURE), set up the necessary development environment.
+
+## Set-Up!!
+
+Do configure AWS SQS, GCP PUB/SUB, Azure Service bus related Dev environment to be able to run the code-base.
+
+## Environment variables
+
+Configure below env variables,
+
+NameSpace__AWS <<>>
+NameSpace__Azure <<>>
+NameSpace__GCP <<>>
+GooglePubSubSettings__ProjectID <<>>
+ServiceBusSettings__ConnectionString <<>>
+
