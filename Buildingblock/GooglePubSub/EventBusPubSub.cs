@@ -8,8 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GooglePubSub
@@ -69,36 +69,36 @@ namespace GooglePubSub
                 var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
 
                 if (!containsKey)
-                {
-                    var _subscriber = await _pubSubConnection.SubscriberClientAsync(subscriber);
                     _subsManager.AddSubscription<T, TH>();
-                    await ProcessMessagesAsync(_subscriber, eventName);
-                    await _subscriber.StopAsync(CancellationToken.None);
-                }
+
+                var _subscriber = await _pubSubConnection.SubscriberClientAsync(subscriber);
+                await ProcessMessagesAsync(_subscriber, eventName);
             }
             catch
             {
                 throw;
             }
-            _subsManager.AddSubscription<T, TH>();
         }
 
         private async Task ProcessMessagesAsync(SubscriberClient _subscriber, string eventName)
         {
-            Task startTask = _subscriber.StartAsync(async (PubsubMessage message, CancellationToken cancel) =>
+            var ack = SubscriberClient.Reply.Nack;
+
+            await _subscriber.StartAsync((msg, cancellationToken) =>
             {
-                if(string.Equals(message.Attributes?.FirstOrDefault().Value, eventName))
-                {
-                    if (await ProcessEvent(eventName, System.Text.Encoding.UTF8.GetString(message.Data.ToArray())))
-                        return SubscriberClient.Reply.Ack;
-                    else
-                        return SubscriberClient.Reply.Nack;
-                }
-                else
-                    return SubscriberClient.Reply.Nack;
+                var reply = ProcessEvent(eventName, System.Text.Encoding.UTF8.GetString(msg.Data.ToArray()))
+                    .GetAwaiter().GetResult();
+
+                if (reply)
+                    ack = SubscriberClient.Reply.Ack;
+
+                // Stop this subscriber after one message is received.
+                // This is non-blocking, and the returned Task may be awaited.
+                _subscriber.StopAsync(TimeSpan.FromSeconds(200));
+                // Return Reply.Ack to indicate this message has been handled.
+                return Task.FromResult(ack);
             });
 
-            await startTask;
         }
 
         private async Task<bool> ProcessEvent(string eventName, string message)
