@@ -12,13 +12,13 @@ namespace PubSubApi.Controllers
     {
         private readonly IEventBus _eventBus;
         private readonly IGcpPubSub _pubSub;
-        private readonly IAwsSqsQueue _awsSqs;
+        //private readonly IAwsSqsQueue _awsSqs;
         public PubSubController(IEventBus eventBus,
-            IGcpPubSub gcpPubSub, IAwsSqsQueue sqsQueue)
+            IGcpPubSub gcpPubSub)//, IAwsSqsQueue sqsQueue)
         {
             _eventBus = eventBus;
             _pubSub = gcpPubSub;
-            _awsSqs = sqsQueue;
+            //_awsSqs = sqsQueue;
         }
 
         [HttpGet("/Default")]
@@ -105,7 +105,7 @@ namespace PubSubApi.Controllers
         [HttpGet("/Queues/List/Sqs")]
         public async Task<IActionResult> SqsQueues()
         {
-            await _awsSqs.ShowQueues();
+            //await _awsSqs.ShowQueues();
             return Ok();
         }
 
@@ -119,7 +119,7 @@ namespace PubSubApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _awsSqs.PublishSqs(new PublishMessageEvent(message.MessageContent, message.TimeStamp));
+                //await _awsSqs.PublishSqs(new PublishMessageEvent(message.MessageContent, message.TimeStamp));
                 return Ok();
             }
             else
@@ -136,7 +136,7 @@ namespace PubSubApi.Controllers
         [HttpPost("/Subscribe/Message/Sqs")]
         public async Task<IActionResult> SubscribeSqs([FromQuery, BindRequired] string subscriberName)
         {
-            await _awsSqs.SubscriberCreateSqs<PublishMessageEvent, SqsMessageEventHandler>(subscriberName);
+            //await _awsSqs.SubscriberCreateSqs<PublishMessageEvent, SqsMessageEventHandler>(subscriberName);
             return Ok();
         }
     }

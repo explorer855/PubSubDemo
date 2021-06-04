@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /Services/PubSubApp/PubSubApi/appsettings.json
 /src/Services/PubSubApp/PubSubApi/appsettings.json
+/docker-compose.override.yml
