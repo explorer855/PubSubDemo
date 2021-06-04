@@ -1,9 +1,29 @@
-version: '3.4'
+version: '3.8'
 
 services:
-
-  pubsubapi:
-    image: ${DOCKER_REGISTRY-}pubsubapi
+  
+  nginxproxy:
+    image: nginxproxy:${TAG:-latest}
     build:
       context: .
-      dockerfile: Services/PubSubApp/PubSubApi/Dockerfile
+      dockerfile: src/reverseproxy/Dockerfile
+    ports:
+      - "7001:7001"
+    restart: on-failure
+    networks:
+      - backend-gateway
+
+  pubsubapi:
+    image: pubsubapi:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/Services/PubSubApp/PubSubApi/Dockerfile
+    networks:
+      - backend-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - nginxproxy
+
+networks:
+  backend-gateway: {}

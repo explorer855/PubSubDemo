@@ -16,7 +16,16 @@ namespace PubSubApi
             .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseKestrel(serverOptions =>
+                    {
+                        serverOptions.AddServerHeader = false;
+                        //serverOptions.AllowSynchronousIO = false;
+                    });
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.CaptureStartupErrors(captureStartupErrors: true);
+                    webBuilder.UseSetting(WebHostDefaults.PreventHostingStartupKey, "true")
+                    //webBuilder.UseIISIntegration()
+                    .UseStaticWebAssets();
                 });
     }
 }
