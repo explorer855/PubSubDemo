@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace AzureMessageBus
 {
     public sealed class EventBusServiceBus
-        : IEventBus
+        : IEventBus, IDisposable
     {
         private readonly IServiceBusPersisterConnection _serviceBusPersisterConnection;
         private readonly ILogger<EventBusServiceBus> _logger;
@@ -70,8 +70,6 @@ namespace AzureMessageBus
             var eventName = typeof(T).Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
 
             var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
-            //if (!containsKey)
-            //{
             try
                 {
                     await _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic).AddRuleAsync(new RuleDescription
@@ -93,7 +91,6 @@ namespace AzureMessageBus
 
                     RegisterSubscriptionClientMessageHandler(subscriber, topic);
                 }
-            //}
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
         }
 
@@ -104,8 +101,6 @@ namespace AzureMessageBus
             var eventName = typeof(T).Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
             _subscriber = subscriber;
             var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
-            //if (!containsKey)
-            //{
                 try
                 {
                     await _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic).AddRuleAsync(new RuleDescription
@@ -127,7 +122,6 @@ namespace AzureMessageBus
 
                     RegisterSessionEnabledSubscriptionClientMessageHandler(subscriber, topic);
                 }
-            //}
             _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
         }
 
@@ -168,10 +162,7 @@ namespace AzureMessageBus
             _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic)?.RegisterMessageHandler(
            async (message, token) =>
            {
-               //var eventName = $"{message.Label}{INTEGRATION_EVENT_SUFFIX}";
                var messageData = Encoding.UTF8.GetString(message.Body);
-
-               // Complete the message so that it is not received again.
                if (await ProcessEvent(message.Label, messageData))
                {
                    await _serviceBusPersisterConnection.SubscriptionClientCreate(subscriber, topic).CompleteAsync(message.SystemProperties.LockToken);

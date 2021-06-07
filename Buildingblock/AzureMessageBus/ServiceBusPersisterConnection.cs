@@ -5,9 +5,8 @@ using System;
 namespace AzureMessageBus
 {
     public sealed class ServiceBusPersisterConnection
-        : IServiceBusPersisterConnection
+        : IServiceBusPersisterConnection, IDisposable
     {
-        private readonly ILogger<ServiceBusPersisterConnection> _logger;
         private readonly ServiceBusConnectionStringBuilder _serviceBusConnectionStringBuilder;
         private readonly string _subscriptionClientName;
         private SubscriptionClient _subscriptionClient;
@@ -21,37 +20,29 @@ namespace AzureMessageBus
             _serviceBusConnectionStringBuilder = serviceBusConnectionStringBuilder ??
                throw new ArgumentNullException(nameof(serviceBusConnectionStringBuilder));
             _subscriptionClientName = subscriptionClientName;
-
-            //if (!string.IsNullOrEmpty(subscriptionClientName))
-            //    _subscriptionClient = new SubscriptionClient(_serviceBusConnectionStringBuilder, subscriptionClientName);
-
-            //_topicClient = new TopicClient(_serviceBusConnectionStringBuilder, RetryPolicy.Default);
         }
 
         public ITopicClient TopicClient(string topicName)
         {
-            //get
-            //{
-                try
+            try
+            {
+                if (_topicClient?.IsClosedOrClosing ?? false || _topicClient == null)
                 {
-                    if (_topicClient?.IsClosedOrClosing ?? false || _topicClient == null)
-                    {
-                        _topicClient = new TopicClient(_serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), topicName, RetryPolicy.Default);
-                    }
-                    return _topicClient;
+                    _topicClient = new TopicClient(_serviceBusConnectionStringBuilder.GetNamespaceConnectionString(), topicName, RetryPolicy.Default);
                 }
-                catch
-                {
-                    throw;
-                }
-            //}
+                return _topicClient;
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         public ISubscriptionClient SubscriptionClient
         {
             get
             {
-                if (_subscriptionClient?.IsClosedOrClosing ?? false || _subscriptionClient == null)
+                if (_subscriptionClient.IsClosedOrClosing || _subscriptionClient == null)
                 {
                     _subscriptionClient = new SubscriptionClient(_serviceBusConnectionStringBuilder, _subscriptionClientName);
                 }
@@ -63,7 +54,7 @@ namespace AzureMessageBus
 
         public ITopicClient CreateModel()
         {
-            if (_topicClient?.IsClosedOrClosing ?? false || _topicClient == null)
+            if (_topicClient.IsClosedOrClosing || _topicClient == null)
             {
                 _topicClient = new TopicClient(_serviceBusConnectionStringBuilder, RetryPolicy.Default);
             }

@@ -17,7 +17,6 @@ namespace GooglePubSub
     public sealed class EventBusPubSub
         : IGcpPubSub
     {
-        private readonly ILogger<EventBusPubSub> _logger;
         private readonly IPubSubPersisterConnection _pubSubConnection;
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly ILifetimeScope _autofac;
@@ -31,7 +30,6 @@ namespace GooglePubSub
             _pubSubConnection = pubSubPersister;
             _subsManager = subsManager;
             _autofac = lifetimeScope;
-            _logger = logger;
         }
 
         #region GCP
@@ -92,10 +90,7 @@ namespace GooglePubSub
                 if (reply)
                     ack = SubscriberClient.Reply.Ack;
 
-                // Stop this subscriber after one message is received.
-                // This is non-blocking, and the returned Task may be awaited.
                 _subscriber.StopAsync(TimeSpan.FromSeconds(200));
-                // Return Reply.Ack to indicate this message has been handled.
                 return Task.FromResult(ack);
             });
 

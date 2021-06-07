@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using PubSubApi.Infrastructure.IntegrationEvents;
+using System;
 using System.Threading.Tasks;
 
 namespace PubSubApi.Controllers
@@ -12,19 +13,18 @@ namespace PubSubApi.Controllers
     {
         private readonly IEventBus _eventBus;
         private readonly IGcpPubSub _pubSub;
-        //private readonly IAwsSqsQueue _awsSqs;
         public PubSubController(IEventBus eventBus,
-            IGcpPubSub gcpPubSub)//, IAwsSqsQueue sqsQueue)
+            IGcpPubSub gcpPubSub)
         {
             _eventBus = eventBus;
             _pubSub = gcpPubSub;
-            //_awsSqs = sqsQueue;
         }
 
         [HttpGet("/Default")]
-        public Task DefaultAction()
+        public async Task<IActionResult> DefaultAction()
         {
-            return Task.CompletedTask;
+            await Task.CompletedTask;
+            return Ok($"OK: {DateTime.Now.ToLongTimeString()}");
         }
 
         /// <summary>

@@ -7,8 +7,5 @@ namespace GooglePubSub
     {
         Task<PublisherClient> PublisherClientAsync(string topicId);
         Task<SubscriberClient> SubscriberClientAsync(string subscriptionId);
-        //ISubscriptionClient SubscriptionClient { get; }
-
-        //ISubscriptionClient SubscriptionClientCreate(string subscriber);
     }
 }

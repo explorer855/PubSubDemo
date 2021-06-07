@@ -19,8 +19,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Prometheus;
 using PubSubApi.Infrastructure.IntegrationEvents;
 using PubSubApi.Infrastructure.MessageBusSettings;
+using PubSubApi.Infrastructure.Metric;
 using System;
 using System.IO;
 using System.Reflection;
@@ -41,10 +43,8 @@ namespace PubSubApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddMvcCoreService()
                 .AddSessionsService()
-                //.AddApplicationsIOptions(Configuration)
                 .AddIntegrationsServices(Configuration)
                 .RegisterServiceBus(Configuration);
 
@@ -59,16 +59,17 @@ namespace PubSubApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             this.AutofacContainer = app.ApplicationServices.GetAutofacRoot();
-            //CustomAppExtensions.ConfigureEventBus(app);
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PubSubApi v1"));
             }
-
             app.UseRouting();
+
+            app.UseMetricServer();
+            app.UseHttpMetrics();
+            app.UseMiddleware<ResponseMetricMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {
@@ -83,6 +84,7 @@ namespace PubSubApi
 
         public static IServiceCollection AddMvcCoreService(this IServiceCollection services)
         {
+            services.AddSingleton<PrometheusMetricReporter>();
             services.AddControllers()
                 .AddNewtonsoftJson(opts =>
                 {
@@ -119,10 +121,7 @@ namespace PubSubApi
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
             {
-                // Set a short timeout for easy testing.
-                //options.IdleTimeout = TimeSpan.FromHours(1);
                 options.Cookie.HttpOnly = true;
-                // Make the session cookie essential
                 options.Cookie.IsEssential = true;
             });
 
@@ -149,24 +148,11 @@ namespace PubSubApi
                 var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString.Value);
                 return new ServiceBusPersisterConnection(serviceBusConnection, logger, string.Empty);
             });
-
-            // GCP Pub/Sub dependencies
             services.AddSingleton<IPubSubPersisterConnection>(sp =>
             {
                 var logger = sp.GetRequiredService<ILogger<PubSubPersisterConnection>>();
                 return new PubSubPersisterConnection(logger, _config);
             });
-
-            // AWS SQS dependencies
-            //services.AddDefaultAWSOptions(_config.GetAWSOptions());
-            //services.AddAWSService<IAmazonSQS>();
-
-            //services.AddSingleton<ISqsPersisterConnection>(opts =>
-            //{
-            //    var logger = opts.GetRequiredService<ILogger<SqsPersisterConnection>>();
-            //    return new SqsPersisterConnection(logger, _config);
-            //});
-
             return services;
         }
 
@@ -207,20 +193,7 @@ namespace PubSubApi
                 return new EventBusPubSub(pubsubPersisterConnection, eventBusSubcriptionsManager, iLifetimeScope, logger, _config);
             });
 
-            //services.AddSingleton<IAwsSqsQueue, EventBusSqs>(sp =>
-            //{
-            //    var pubsubPersisterConnection = sp.GetRequiredService<ISqsPersisterConnection>();
-            //    var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-            //    var logger = sp.GetRequiredService<ILogger<EventBusSqs>>();
-            //    var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
-
-
-            //    return new EventBusSqs(pubsubPersisterConnection, logger, eventBusSubcriptionsManager, iLifetimeScope, _config, _config.GetAWSOptions().CreateServiceClient<IAmazonSQS>());
-            //});
-
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
-
-            // Register Messagehandlers
             services.AddTransient<ServiceBusMessageEventHandler>();
             services.AddTransient<PubSubMessageEventHandler>();
             services.AddTransient<SqsMessageEventHandler>();
