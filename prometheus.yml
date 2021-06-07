@@ -9,14 +9,14 @@ global:
 # A scrape configuration containing exactly one endpoint to scrape:
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'read-nginx-proxy'
+  - job_name: 'nginx-proxy'
     # metrics_path defaults to '/metrics'
     static_configs:
     # replace the IP with your local IP for development
     # localhost is not it, as that is w/in the container :)
     - targets: ['nginxproxy:7001']
 
-  - job_name: 'read-pubsubapi-app'
+  - job_name: 'pubsubapi-app'
     # metrics_path defaults to '/metrics'
     static_configs:
     # replace the IP with your local IP for development
