@@ -1,9 +1,50 @@
-version: '3.4'
+version: '3.8'
 
 services:
-
-  pubsubapi:
-    image: ${DOCKER_REGISTRY-}pubsubapi
+  
+  nginxproxy:
+    image: nginxproxy:${TAG:-latest}
     build:
       context: .
-      dockerfile: Services/PubSubApp/PubSubApi/Dockerfile
+      dockerfile: src/reverseproxy/Dockerfile
+    ports:
+      - "7001:7001"
+    restart: on-failure
+    networks:
+      - backend-gateway
+
+  pubsubapi:
+    image: pubsubapi:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/Services/PubSubApp/PubSubApi/Dockerfile
+    networks:
+      - backend-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - nginxproxy
+
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - backend-gateway
+
+  grafana: 
+    image: grafana/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=P@ssw0rd
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - backend-gateway
+
+
+networks:
+  backend-gateway: {}

@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PubSubApi</name>
+    </assembly>
+    <members>
+        <member name="M:PubSubApi.Controllers.PubSubController.Publish(PubSubApi.Infrastructure.IntegrationEvents.MessageObjectEntity)">
+            <summary>
+            Publish messages to Azure Service Bus Topic
+            </summary>
+            <param name="message"></param>
+        </member>
+        <member name="M:PubSubApi.Controllers.PubSubController.Subscribe(System.String,System.String)">
+            <summary>
+            Subscribe to messages of Azure Service Bus Topic
+            </summary>
+            <param name="subscriberName"></param>
+        </member>
+        <member name="M:PubSubApi.Controllers.PubSubController.SubscribeWOSession(System.String,System.String)">
+            <summary>
+            Subscribe to messages of Azure Service Bus Topic
+            </summary>
+            <param name="subscriberName"></param>
+        </member>
+        <member name="M:PubSubApi.Controllers.PubSubController.PublishGcp(PubSubApi.Infrastructure.IntegrationEvents.MessageObjectEntity)">
+            <summary>
+            Publish Messages to GCP Pub/Sub Topic
+            </summary>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PubSubApi.Controllers.PubSubController.SubscribeGcp(System.String)">
+            <summary>
+            Subscribe Messages from GCP Pub/Sub Topic
+            </summary>
+            <param name="subscriberName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PubSubApi.Controllers.PubSubController.SqsQueues">
+            <summary>
+            Api to list all SQS Queues
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:PubSubApi.Controllers.PubSubController.PublishSqs(PubSubApi.Infrastructure.IntegrationEvents.MessageObjectEntity)">
+            <summary>
+            Publish Messages to AWS SQS Topic
+            </summary>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PubSubApi.Controllers.PubSubController.SubscribeSqs(System.String)">
+            <summary>
+            Subscribe Messages from AWS SQS Topic
+            </summary>
+            <param name="subscriberName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PubSubApi.CustomAppExtensions.AddIntegrationsServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adds up integration Services dependencies
+            </summary>
+            <param name="services"></param>
+            <param name="_config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:PubSubApi.CustomAppExtensions.RegisterServiceBus(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Register SQS, Pub/Sub, Azure Service Bus dependencies.
+            </summary>
+            <param name="services"></param>
+            <param name="_config"></param>
+        </member>
+    </members>
+</doc>
