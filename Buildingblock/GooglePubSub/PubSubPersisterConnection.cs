@@ -12,23 +12,20 @@ namespace GooglePubSub
     /// Class handles Creating Publishing, Subscribing Clients
     /// </summary>
     public sealed class PubSubPersisterConnection
-        : IPubSubPersisterConnection
+        : IPubSubPersisterConnection, IDisposable
     {
-        private readonly ILogger<PubSubPersisterConnection> _logger;
         bool _disposed;
         private readonly IConfiguration _config;
         public PubSubPersisterConnection(ILogger<PubSubPersisterConnection> logger,
             IConfiguration configuration)
         {
             _config = configuration;
-            _logger = logger;
         }
 
         public async Task<PublisherClient> PublisherClientAsync(string topicId)
         {
             try
             {
-                //AuthImplicit();
                 TopicName topicName = TopicCreate(topicId);
                 PublisherClient publisher = await PublisherClient.CreateAsync(topicName);
                 return publisher;
@@ -67,11 +64,9 @@ namespace GooglePubSub
 
         public void AuthImplicit()
         {
-            // If you don't specify credentials when constructing the client, the
-            // client library will look for credentials in the environment.
             var credential = GoogleCredential.GetApplicationDefault();
             var storage = StorageClient.Create(credential);
-            // Make an authenticated API request.
+
             var buckets = storage.ListBuckets(_config.GetSection("GooglePubSubSettings:ProjectID")?.Value);
             foreach (var bucket in buckets)
             {

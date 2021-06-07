@@ -17,27 +17,24 @@ using System.Threading.Tasks;
 namespace AwsSqsService
 {
     public sealed class EventBusSqs
-        : IAwsSqsQueue
+        : IAwsSqsQueue, IDisposable
     {
-        private readonly ISqsPersisterConnection _serviceBusPersisterConnection;
         private readonly ILogger<EventBusSqs> _logger;
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly ILifetimeScope _autofac;
         private readonly string AUTOFAC_SCOPE_NAME;
         private const string INTEGRATION_EVENT_SUFFIX = "IntegrationEvent";
-        private string _subscriber;
         private readonly IAmazonSQS _sqs;
+        bool _disposed;
 
         public EventBusSqs(ISqsPersisterConnection serviceBusPersisterConnection,
             ILogger<EventBusSqs> logger, IEventBusSubscriptionsManager subsManager,
             ILifetimeScope autofac, IConfiguration configuration, IAmazonSQS amazonSQS)
         {
             AUTOFAC_SCOPE_NAME = configuration.GetSection("NameSpace:AWS")?.Value.ToString();
-            _serviceBusPersisterConnection = serviceBusPersisterConnection;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
             _autofac = autofac;
-            _subscriber = string.Empty;
             _sqs = amazonSQS;
         }
 
@@ -70,32 +67,12 @@ namespace AwsSqsService
             _subsManager.AddDynamicSubscription<TH>(eventName);
         }
 
-        public async Task SubscribeSqs<T, TH>()
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>
-        {
-            var eventName = typeof(T).Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
-
-            var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
-            if (!containsKey)
-            {
-                
-            }
-
-            _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).Name);
-
-            _subsManager.AddSubscription<T, TH>();
-        }
-
         public async Task SubscriberCreateSqs<T, TH>(string subscriber)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
             var eventName = typeof(T).Name.Replace(INTEGRATION_EVENT_SUFFIX, "");
-            _subscriber = subscriber;
             var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
-           
-
             if (!containsKey)
             {
                 _subsManager.AddSubscription<T, TH>();
@@ -145,7 +122,6 @@ namespace AwsSqsService
             Console.WriteLine();
             foreach (string qUrl in responseList.QueueUrls)
             {
-                // Get and show all attributes. Could also get a subset.
                 await ShowAllAttributes(_sqs, qUrl);
             }
         }
@@ -194,6 +170,9 @@ namespace AwsSqsService
 
         public void Dispose()
         {
+            if (_disposed) return;
+
+            _disposed = true;
             _subsManager.Clear();
         }
     }
