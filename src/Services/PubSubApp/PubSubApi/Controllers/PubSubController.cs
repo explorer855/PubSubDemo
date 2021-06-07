@@ -24,7 +24,14 @@ namespace PubSubApi.Controllers
         public async Task<IActionResult> DefaultAction()
         {
             await Task.CompletedTask;
-            return Ok($"OK: {DateTime.Now.ToLongTimeString()}");
+            return Ok($"OK: {DateTime.UtcNow.ToLongTimeString()}");
+        }
+
+        [HttpGet("/Show/DateTime")]
+        public async Task<IActionResult> ShowDateTime()
+        {
+            await Task.CompletedTask;
+            return Ok($@"Today's DateTime: { DateTime.Now.DayOfWeek}, {DateTime.UtcNow.ToLongTimeString()}");
         }
 
         /// <summary>

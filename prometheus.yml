@@ -16,7 +16,7 @@ scrape_configs:
     # localhost is not it, as that is w/in the container :)
     - targets: ['nginxproxy:7001']
 
-  - job_name: 'read-pubsubapi'
+  - job_name: 'read-pubsubapi-app'
     # metrics_path defaults to '/metrics'
     static_configs:
     # replace the IP with your local IP for development
